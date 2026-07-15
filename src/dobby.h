@@ -12,16 +12,11 @@ extern "C" {
 typedef uintptr_t addr_t;
 typedef void *asm_func_t;
 
-typedef enum {
-    kInstructionSoft,
-    kInstructionHard
-} InstructionType;
+// This defines the missing type the compiler was complaining about!
+typedef void (*dobby_dummy_func_t)(void);
 
-// The main hooking function we call in main.cpp
-int DobbyHook(void *function_address, void *replace_call, void **origin_call);
-
-// Helper to resolve dynamic symbols in the ELF library
-void *DobbySymbolResolver(const char *image_name, const char *symbol_name);
+// The main hooking function mapping
+int DobbyHook(void *function_address, dobby_dummy_func_t replace_call, dobby_dummy_func_t *origin_call);
 
 #ifdef __cplusplus
 }
