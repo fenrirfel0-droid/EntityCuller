@@ -1,0 +1,11 @@
+{
+    "type": "preload-native",
+    "name": "EntityCuller",
+    "entry": "libentityculler.so",
+    "author": "PocoF5_Developer",
+    "icon": "",
+    "version": "v1.0.0",
+    "minecraft_versions": [
+        "1.26.20.4*"
+    ]
+}
