@@ -1,8 +1,6 @@
 #include <jni.h>
 #include <android/log.h>
 #include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 #include <dlfcn.h>
 #include "dobby.h"
 
@@ -27,7 +25,8 @@ void hook_EntityRender(void* self, Actor* actor, void* region, const Vec3& camer
         float dz = actor->pos.z - cameraPos.z;
         float distanceSq = (dx * dx) + (dy * dy) + (dz * dz);
 
-        // Render threshold check (40 block radius)
+        // 40 Blocks Culling Radius (40 * 40 = 1600)
+        // Stops rendering entities past this boundary
         if (distanceSq > 1600.0f) {
             return; 
         }
@@ -38,64 +37,22 @@ void hook_EntityRender(void* self, Actor* actor, void* region, const Vec3& camer
     }
 }
 
-// Function to trigger a native Android Toast Notification safely using JNI
-void showToast(JNIEnv* env, jobject context) {
-    jclass toastClass = env->FindClass("android/widget/Toast");
-    if (!toastClass) return;
-
-    jmethodID makeTextMethod = env->GetStaticMethodID(toastClass, "makeText", 
-        "(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;");
-    if (!makeTextMethod) return;
-
-    jstring text = env->NewStringUTF("Entity Culling: ON");
-    jobject toastObj = env->CallStaticObjectMethod(toastClass, makeTextMethod, context, text, 0); // 0 = Short duration
-
-    if (toastObj) {
-        jmethodID showMethod = env->GetMethodID(toastClass, "show", "()V");
-        if (showMethod) {
-            env->CallVoidMethod(toastObj, showMethod);
-        }
-    }
-}
-
-// Automatically runs when LeviLauncher loads this library into the JVM
-extern "C" jint JNI_OnLoad(JavaVM* vm, void* reserved) {
-    JNIEnv* env;
-    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
-        return JNI_ERR;
-    }
-
-    // Try to retrieve the global context of Minecraft's active game activity
-    jclass activityThread = env->FindClass("android/app/ActivityThread");
-    if (activityThread) {
-        jmethodID currentActivityThread = env->GetStaticMethodID(activityThread, "currentActivityThread", "()Landroid/app/ActivityThread;");
-        jobject at = env->CallStaticObjectMethod(activityThread, currentActivityThread);
-        if (at) {
-            jmethodID getApplication = env->GetMethodID(activityThread, "getApplication", "()Landroid/app/Application;");
-            jobject context = env->CallObjectMethod(at, getApplication);
-            if (context) {
-                showToast(env, context);
-            }
-        }
-    }
-    return JNI_VERSION_1_6;
-}
-
 __attribute__((constructor))
 void initializeCuller() {
-    LOGI("EntityCuller Preload Loaded!");
+    LOGI("EntityCuller Engine Initialized!");
 
     void* handle = dlopen("libminecraftpe.so", RTLD_LAZY);
     if (!handle) {
-        LOGI("Failed to find libminecraftpe.so");
+        LOGI("Failed to link libminecraftpe.so");
         return;
     }
 
+    // Dynamic rendering function hook target symbol
     void* target_function = dlsym(handle, "_ZN13ActorRenderer6renderER5ActorRK4Vec3f"); 
     if (target_function) {
         DobbyHook(target_function, (dobby_dummy_func_t)hook_EntityRender, (dobby_dummy_func_t*)&orig_EntityRender);
         LOGI("Successfully Hooked ActorRenderer!");
     } else {
-        LOGI("Could not locate target rendering function.");
+        LOGI("Could not locate target rendering function symbol.");
     }
 }
