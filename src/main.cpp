@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <string>
+#include <dlfcn.h>
 #include "dobby.h"
 
 #define LOG_TAG "EntityCuller"
@@ -27,7 +28,6 @@ EntityRender_t orig_EntityRender = nullptr;
 
 // Active culling logic with screen feedback
 void hook_EntityRender(void* self, Actor* actor, void* region, const Vec3& cameraPos, float partialTicks) {
-    // Attempt to safely cast self context to verify if a player object is active
     Player* localPlayer = reinterpret_cast<Player*>(self);
     
     // §a turns the text green, §l makes it bold in Minecraft Bedrock
@@ -52,7 +52,27 @@ void hook_EntityRender(void* self, Actor* actor, void* region, const Vec3& camer
     }
 }
 
+// Entry constructor: Invoked instantly by LeviLauncher during game startup
 __attribute__((constructor))
 void initializeCuller() {
-    LOGI("EntityCuller Engine Injected!");
+    LOGI("EntityCuller Preload Loaded!");
+
+    // 1. Locate the Minecraft game library in memory
+    void* handle = dlopen("libminecraftpe.so", RTLD_LAZY);
+    if (!handle) {
+        LOGI("Failed to find libminecraftpe.so!");
+        return;
+    }
+
+    // 2. Find the internal Entity Rendering function
+    // (Note: This address/symbol changes depending on your exact version. This is a common template lookup symbol)
+    void* target_function = dlsym(handle, "_ZN13ActorRenderer6renderER5ActorRK4Vec3f"); 
+
+    if (target_function) {
+        // 3. Inject our hook using Dobby!
+        DobbyHook(target_function, (dobby_dummy_func_t)hook_EntityRender, (dobby_dummy_func_t*)&orig_EntityRender);
+        LOGI("Successfully Hooked ActorRenderer!");
+    } else {
+        LOGI("Could not locate the rendering target symbol.");
+    }
 }
