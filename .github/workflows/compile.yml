@@ -3,7 +3,10 @@ name: Compile Android Plugin
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: # Lets you trigger compilation manually!
+  workflow_dispatch: # Lets you trigger the build manually whenever you want
+
+permissions:
+  contents: write # Crucial permission allowing the bot to publish a public release
 
 jobs:
   build:
@@ -15,25 +18,34 @@ jobs:
 
     - name: Set up Android NDK
       uses: nttld/setup-ndk@v1
-      id: setup-ndk
       with:
         ndk-version: r26b
 
     - name: Compile libentityculler.so
       run: |
         $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android34-clang++ \
-          -shared -fPIC -std=c++20 \
-          -I./src \
-          src/main.cpp \
-          -o libentityculler.so \
-          -llog
+        -shared \
+        -I./src \
+        src/main.cpp \
+        -o libentityculler.so \
+        -llog
 
     - name: Package Mod into Zip
       run: |
-        zip -r EntityCuller.levipack.zip libentityculler.so manifest.json
+        zip -r EntityCuller.levipack.zip manifest.json libentityculler.so
 
-    - name: Upload Finished Mod File
+    - name: Upload Temporary Artifact
       uses: actions/upload-artifact@v4
       with:
         name: EntityCuller-Plugin
         path: EntityCuller.levipack.zip
+
+    - name: Create Public Release Link
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: latest
+        name: "EntityCuller Stable Release"
+        body: "Download the compiled EntityCuller.levipack.zip below and open it directly inside LeviLauncher!"
+        files: EntityCuller.levipack.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
