@@ -9,10 +9,23 @@
   },
   "modules": [
     {
-      "description": "Native C++ Hooking Engine",
+      "description": "Native C++ Loader",
       "type": "resources",
       "uuid": "2a3b4c5d-6e7f-8a9b-0c1d-2e3f4a5b6c7d",
       "version": [1, 0, 0]
+    },
+    {
+      "description": "Android 15 Safe Optimization Script",
+      "type": "javascript",
+      "uuid": "9c8b7a6f-5e4d-3c2b-1a0e-9f8e7d6c5b4a",
+      "version": [1, 0, 0],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    {
+      "module_name": "@minecraft/server",
+      "version": "1.10.0"
     }
   ]
 }
