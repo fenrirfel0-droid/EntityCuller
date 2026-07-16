@@ -3,14 +3,14 @@ name: Compile Android Plugin
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: # Lets you trigger the build manually whenever you want
+  workflow_dispatch:
 
 permissions:
-  contents: write # Crucial permission allowing the bot to publish a public release
+  contents: write
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout Repository
@@ -28,7 +28,7 @@ jobs:
           -I./src \
           src/main.cpp \
           -o libentityculler.so \
-          -llog
+          -llog -landroid
 
     - name: Package Mod into Zip
       run: |
@@ -43,8 +43,8 @@ jobs:
     - name: Create Public Release Link
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: latest
-        name: "EntityCuller Stable Release"
+        tag_name: "v1.0.${{ github.run_number }}"
+        name: "EntityCuller Release v1.0.${{ github.run_number }}"
         body: "Download the compiled EntityCuller.levipack.zip below and open it directly inside LeviLauncher!"
         files: EntityCuller.levipack.zip
       env:
