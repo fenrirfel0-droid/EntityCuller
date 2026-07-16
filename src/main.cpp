@@ -1,8 +1,8 @@
 #include <jni.h>
 #include <android/log.h>
 #include <stdint.h>
-#include <math.h>
-#include <string>
+#include <stdlib.h>
+#include <string.h>
 #include <dlfcn.h>
 #include "dobby.h"
 
@@ -15,11 +15,6 @@ struct Vec3 {
 
 struct Actor {
     Vec3 pos; 
-};
-
-struct Player {
-    virtual void displayChatMessage(const std::string& msg, const std::string& author) = 0;
-    virtual void displayClientMessage(const std::string& msg) = 0;
 };
 
 typedef void (*EntityRender_t)(void* self, Actor* actor, void* region, const Vec3& cameraPos, float partialTicks);
@@ -43,7 +38,7 @@ void hook_EntityRender(void* self, Actor* actor, void* region, const Vec3& camer
     }
 }
 
-// Function to trigger a native Android Toast Notification
+// Function to trigger a native Android Toast Notification safely using JNI
 void showToast(JNIEnv* env, jobject context) {
     jclass toastClass = env->FindClass("android/widget/Toast");
     if (!toastClass) return;
