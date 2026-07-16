@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout Repository
@@ -24,7 +24,7 @@ jobs:
     - name: Compile libentityculler.so
       run: |
         $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android34-clang++ \
-          -shared -fPIC -std=c++20 \
+          -shared -fPIC -O2 \
           -I./src \
           src/main.cpp \
           -o libentityculler.so \
