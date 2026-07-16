@@ -1,11 +1,18 @@
 {
-    "type": "preload-native",
-    "name": "EntityCuller",
-    "entry": "libentityculler.so",
-    "author": "PocoF5_Developer",
-    "icon": "",
-    "version": "v1.0.0",
-    "minecraft_versions": [
-        "1.26.20.4*"
-    ]
+  "format_version": 2,
+  "header": {
+    "description": "Optimizes Minecraft performance by dynamically culling hidden and far-away entities.",
+    "name": "Entity Culler Plugin",
+    "uuid": "4f26b52a-9e1d-4b8a-9f2d-8b3c4d5e6f7a",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 20, 0]
+  },
+  "modules": [
+    {
+      "description": "Native C++ Hooking Engine",
+      "type": "resources",
+      "uuid": "2a3b4c5d-6e7f-8a9b-0c1d-2e3f4a5b6c7d",
+      "version": [1, 0, 0]
+    }
+  ]
 }
