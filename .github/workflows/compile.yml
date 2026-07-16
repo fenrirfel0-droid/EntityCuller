@@ -28,11 +28,14 @@ jobs:
           -I./src \
           src/main.cpp \
           -o libentityculler.so \
-          -llog -landroid
+          -llog
 
-    - name: Package Mod into Zip
+    - name: Package Mod and Structure Splash Folder
       run: |
-        zip -r EntityCuller.levipack.zip manifest.json libentityculler.so
+        # Ensure texts folder is preserved
+        mkdir -p texts
+        cp splashes.json texts/ || cp texts/splashes.json texts/ || true
+        zip -r EntityCuller.levipack.zip manifest.json libentityculler.so texts/
 
     - name: Upload Temporary Artifact
       uses: actions/upload-artifact@v4
