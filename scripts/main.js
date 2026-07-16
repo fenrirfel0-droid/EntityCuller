@@ -1,6 +1,6 @@
 import { world, system } from "@minecraft/server";
 
-// We keep track so the notification only shows once per game boot
+// Keep track so the notification only shows once when you enter a world
 let hasNotified = false;
 
 world.afterEvents.playerSpawn.subscribe((event) => {
@@ -8,15 +8,16 @@ world.afterEvents.playerSpawn.subscribe((event) => {
     
     const player = event.player;
     
-    // Trigger a clean, official Minecraft sliding UI toast notification
-    // It will look exactly like the "Successfully Imported Pack" popup!
-    player.runCommand(`title @s actionbar §l§a[Entity Culling: Loaded Successfully]`);
-    player.runCommand(`playsound random.toast @s ~ ~ ~ 1.0 1.0`); // Plays the native notification ding sound!
+    // Shows "[Entity Culling: Activated]" right above your hotbar
+    player.runCommand(`title @s actionbar §a§l[Entity Culling: Activated]`);
+    
+    // Plays the official high-pitched success "ding" sound
+    player.runCommand(`playsound random.toast @s ~ ~ ~ 1.0 1.0`);
     
     hasNotified = true; 
 });
 
-// Optimization loop: despawns distant mobs to save your FPS on Android 15
+// High-performance optimization loop running every 20 ticks (1 second)
 system.runInterval(() => {
     const players = world.getAllPlayers();
     if (players.length === 0) return;
@@ -26,6 +27,7 @@ system.runInterval(() => {
     const entities = localPlayer.dimension.getEntities();
 
     for (const entity of entities) {
+        // We never cull players!
         if (entity.typeId === "minecraft:player") continue;
 
         const entityPos = entity.location;
@@ -34,9 +36,10 @@ system.runInterval(() => {
         const dz = entityPos.z - playerPos.z;
         const distanceSq = (dx * dx) + (dy * dy) + (dz * dz);
 
-        // Past 40 blocks, optimize them out to boost FPS
+        // 40 Blocks Culling boundary (40 * 40 = 1600 distance squared)
         if (distanceSq > 1600) {
+            // Forces the game engine to unload/despawn the entity to instantly free up memory
             entity.triggerEvent("minecraft:despawn"); 
         }
     }
-}, 20); // Runs once every second
+}, 20);
